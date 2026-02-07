@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Калькулятор топперов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+      color: #333;
+    }
+
+    .container {
+      max-width: 540px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px 30px 50px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .settings-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      width: 28px;
+      height: 28px;
+    }
+
+    .settings-toggle svg {
+      fill: #666;
+      transition: transform 0.3s ease;
+    }
+
+    .settings-toggle.active svg {
+      transform: rotate(90deg);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #222;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+      transform: scale(1.2);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    button {
+      width: 100%;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #1a252f;
+    }
+
+    #result, #minNote {
+      margin-top: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    #minNote {
+      color: #b30000;
+      font-weight: bold;
+    }
+
+    .settings {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .settings h3 {
+      margin-top: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      button {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <button class="settings-toggle" onclick="toggleSettings(this)">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-4.5c.04.33.07.66.07 1s-.03.67-.07 1l2.11 1.65a.5.5 0 0 1 .11.64l-2 3.46a.5.5 0 0 1-.6.22l-2.49-1a6.98 6.98 0 0 1-1.73 1l-.38 2.65a.5.5 0 0 1-.5.42h-4a.5.5 0 0 1-.5-.42l-.38-2.65a6.98 6.98 0 0 1-1.73-1l-2.49 1a.5.5 0 0 1-.6-.22l-2-3.46a.5.5 0 0 1 .11-.64L4.57 13c-.04-.33-.07-.66-.07-1s.03-.67.07-1L2.46 9.35a.5.5 0 0 1-.11-.64l2-3.46a.5.5 0 0 1 .6-.22l2.49 1a6.98 6.98 0 0 1 1.73-1l.38-2.65a.5.5 0 0 1 .5-.42h4c.25 0 .46.18.5.42l.38 2.65a6.98 6.98 0 0 1 1.73 1l2.49-1a.5.5 0 0 1 .6.22l2 3.46a.5.5 0 0 1-.11.64L19.43 11z"/>
+    </svg>
+  </button>
+
+  <h2>Калькулятор стоимости топпера</h2>
+
+  <label>Длина (мм):
+    <input type="number" id="length" />
+  </label>
+
+  <label>Ширина (мм):
+    <input type="number" id="width" />
+  </label>
+
+  <div class="checkbox-group">
+    <input type="checkbox" id="enableQuantity" />
+    <label for="enableQuantity">Указать количество</label>
+  </div>
+  <input type="number" id="quantity" value="1" style="display:none;" />
+
+  <div class="checkbox-group">
+    <input type="checkbox" id="priceTypeToggle" />
+    <label for="priceTypeToggle">Режим: <span id="priceTypeLabel">Розница</span></label>
+  </div>
+
+  <button onclick="calculate()">Рассчитать</button>
+
+  <div id="result"></div>
+  <div id="minNote"></div>
+
+  <div class="settings" id="settingsPanel">
+    <h3>Настройки</h3>
+    <label>Себестоимость за см² (руб):
+      <input type="number" step="0.01" id="costPerCm" />
+    </label>
+    <label>Наценка розница (x):
+      <input type="number" step="0.1" id="retailMarkup" />
+    </label>
+    <label>Наценка опт (x):
+      <input type="number" step="0.1" id="wholesaleMarkup" />
+    </label>
+    <button onclick="saveSettings()">Сохранить настройки</button>
+  </div>
+</div>
+
+<script>
+  const quantityInput = document.getElementById("quantity");
+  const enableQuantityCheckbox = document.getElementById("enableQuantity");
+  const costPerCmInput = document.getElementById("costPerCm");
+  const priceTypeLabel = document.getElementById("priceTypeLabel");
+
+  function toggleSettings(btn) {
+    const panel = document.getElementById("settingsPanel");
+    const isOpen = panel.style.display === "block";
+    panel.style.display = isOpen ? "none" : "block";
+    btn.classList.toggle("active", !isOpen);
+  }
+
+  function roundToNearest5(num) {
+    return Math.round(num / 5) * 5;
+  }
+
+  function saveSettings() {
+    localStorage.setItem("costPerCm", costPerCmInput.value);
+    localStorage.setItem("retailMarkup", document.getElementById("retailMarkup").value);
+    localStorage.setItem("wholesaleMarkup", document.getElementById("wholesaleMarkup").value);
+  }
+
+  function loadSettings() {
+    costPerCmInput.value = localStorage.getItem("costPerCm") || "0.61";
+    document.getElementById("retailMarkup").value = localStorage.getItem("retailMarkup") || "5";
+    document.getElementById("wholesaleMarkup").value = localStorage.getItem("wholesaleMarkup") || "3";
+  }
+
+  enableQuantityCheckbox.addEventListener("change", function () {
+    quantityInput.style.display = this.checked ? "block" : "none";
+  });
+
+  document.getElementById("priceTypeToggle").addEventListener("change", function () {
+    priceTypeLabel.textContent = this.checked ? "Опт" : "Розница";
+  });
+
+  function calculate() {
+    const length = parseFloat(document.getElementById("length").value);
+    const width = parseFloat(document.getElementById("width").value);
+    const costPerCm = parseFloat(costPerCmInput.value);
+    const retailMarkup = parseFloat(document.getElementById("retailMarkup").value);
+    const wholesaleMarkup = parseFloat(document.getElementById("wholesaleMarkup").value);
+    let quantity = 1;
+    const resultDiv = document.getElementById("result");
+    const minNoteDiv = document.getElementById("minNote");
+
+    saveSettings();
+
+    if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
+      resultDiv.textContent = "Введите корректные длину и ширину";
+      minNoteDiv.textContent = "";
+      return;
+    }
+
+    if (enableQuantityCheckbox.checked) {
+      const q = parseInt(quantityInput.value, 10);
+      if (!isNaN(q) && q >= 1) {
+        quantity = q;
+      } else {
+        resultDiv.textContent = "Введите корректное количество";
+        minNoteDiv.textContent = "";
+        return;
+      }
+    }
+
+    const area_cm2 = (length * width) / 100;
+    const priceType = document.getElementById("priceTypeToggle").checked ? "wholesale" : "retail";
+
+    if (isNaN(costPerCm) || costPerCm <= 0) {
+      resultDiv.textContent = "Укажите корректную себестоимость в настройках";
+      minNoteDiv.textContent = "";
+      return;
+    }
+
+    let markup = priceType === "retail" ? retailMarkup : wholesaleMarkup;
+    let finalPricePerUnit = area_cm2 * costPerCm * markup;
+    finalPricePerUnit = roundToNearest5(finalPricePerUnit);
+    let totalPrice = finalPricePerUnit * quantity;
+
+    if (priceType === "retail" && totalPrice < 350) {
+      totalPrice = 350;
+      minNoteDiv.textContent = "Применена минимальная сумма заказа 350 руб";
+      finalPricePerUnit = roundToNearest5(totalPrice / quantity);
+    } else {
+      minNoteDiv.textContent = "";
+    }
+
+    const totalCost = area_cm2 * costPerCm * quantity;
+    const profit = totalPrice - totalCost;
+    const margin = (profit / totalCost) * 100;
+
+    if (quantity === 1) {
+      resultDiv.innerHTML = `
+        Площадь топпера: ${area_cm2.toFixed(1)} см²<br>
+        Цена: ${totalPrice} руб.
+      `;
+    } else {
+      resultDiv.innerHTML = `
+        Площадь одного топпера: ${area_cm2.toFixed(1)} см²<br>
+        Цена за 1 топпер: ${finalPricePerUnit} руб.<br>
+        Количество: ${quantity}<br>
+        Общая стоимость: ${totalPrice} руб.
+      `;
+    }
+
+    resultDiv.innerHTML += `
+      <br><br><span style="color: #555;">Себестоимость: ${Math.round(totalCost)} руб.<br>
+      Прибыль: ${Math.round(profit)} руб.<br>
+      Маржа: ${margin.toFixed(1)}%</span>
+    `;
+  }
+
+  loadSettings();
+</script>
+
+</body>
+</html>
